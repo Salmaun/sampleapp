@@ -1,5 +1,6 @@
 Sampleapp::Application.routes.draw do
-  get "users/new"
+  resources :users
+
   root :to => 'static_pages#home'
   match '/help',    to: 'static_pages#help'
   match '/about',   to: 'static_pages#about'
@@ -8,9 +9,6 @@ Sampleapp::Application.routes.draw do
 
 
   resources :microposts
-
-
-  resources :users
 
 
   get "welcome/index"
