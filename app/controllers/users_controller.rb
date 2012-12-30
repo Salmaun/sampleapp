@@ -17,6 +17,7 @@ class UsersController < ApplicationController
   # GET /users/1.json
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
 
     respond_to do |format|
       format.html # show.html.erb
@@ -27,11 +28,16 @@ class UsersController < ApplicationController
   # GET /users/new
   # GET /users/new.json
   def new
+    if signed_in?
+      flash[:success] = "you're already signed in silly!"
+      redirect_to root_path
+    else
     @user = User.new
 
-    respond_to do |format|
-      format.html # new.html.erb
-      format.json { render json: @user }
+      respond_to do |format|
+        format.html # new.html.erb
+        format.json { render json: @user }
+      end
     end
   end
 
@@ -42,15 +48,19 @@ class UsersController < ApplicationController
   # POST /users
   # POST /users.json
   def create
-        @user = User.new(params[:user])
-
-        if @user.save
-          sign_in @user
-          flash[:success] = "Welcome to the Sample App!"
-          redirect_to @user
-        else
-          render 'new'
-        end
+     if signed_in?
+         flash[:success] = "you're already signed in silly!"
+         redirect_to root_path
+         else
+          @user = User.new(params[:user])
+          if @user.save
+            sign_in @user
+            flash[:success] = "Welcome to the Sample App!"
+            redirect_to @user
+          else
+            render 'new'
+          end
+     end
   end
 
 
@@ -75,13 +85,6 @@ class UsersController < ApplicationController
   end
 
   private
-
-  def signed_in_user
-    unless signed_in?
-      store_location
-      redirect_to signin_url, notice: "Please sign in."
-    end
-  end
 
   def correct_user
     @user = User.find(params[:id])
