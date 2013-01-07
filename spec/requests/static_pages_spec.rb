@@ -20,9 +20,48 @@ describe "Static pages" do
         visit root_path
       end
 
+      it "should have link to users page" do
+        click_link "view my profile"
+        page.should have_selector('title', text: user.name)
+      end
+
+      it "should contain two microposts with correct pluralization" do
+        should have_content('microposts')  # plural
+      end
+
       it "should render the user's feed" do
         user.feed.each do |item|
           page.should have_selector("li##{item.id}", text: item.content)
+        end
+      end
+
+      describe "follower/following counts" do
+        let(:other_user) { FactoryGirl.create(:user) }
+        before do
+          other_user.follow!(user)
+          visit root_path
+        end
+
+        it { should have_link("0 following", href: following_user_path(user)) }
+        it { should have_link("1 followers", href: followers_user_path(user)) }
+      end
+    end
+
+    describe "pagination" do
+      let(:user) { FactoryGirl.create(:user) }
+      before(:all) {31.times { FactoryGirl.create(:micropost, user: user, content: "Lorem Ipsum") }  }
+      before do
+        sign_in user
+        visit root_path
+      end
+
+      after {user.microposts.delete_all}
+
+      it { should have_selector('div.pagination') }
+
+      it "should list each micropost" do
+        user.microposts.paginate(page: 1).each do |micropost|
+          page.should have_selector('span', text: micropost.content)
         end
       end
     end
